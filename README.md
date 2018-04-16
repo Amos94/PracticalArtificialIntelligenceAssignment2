@@ -1,1 +1,1 @@
-# PracticalArtificialIntelligenceAssignment2
+# Practical Artificial Intelligence Assignment 2
