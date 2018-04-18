@@ -19,4 +19,23 @@ course(C, F, E).
 attend(S, C).
 
 /* Implementation of Level 1 */
+
+pass1(X):- student(X, K), has_credits(X,E), E @>= 30.
+fail1(X):- student(X, K), has_credits(X,E), E @< 30.
+
 has_credits(X,E).
+
+/* Amos tests:
+-------------------------
+student(amos, ss).
+student(sam, ss).
+student(bob, ss).
+student(alice, ifi).
+has_credits(amos, 30).
+has_credits(sam, 10).
+has_credits(alice, 200).
+-------------------------
+*/
+
+
+/* Implementation of Level 2 */
