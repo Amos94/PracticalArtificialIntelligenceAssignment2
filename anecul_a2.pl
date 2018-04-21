@@ -115,8 +115,8 @@ fail2(X).                   bob
 */
 
 /* Implementation of Level 2 */
-
-num_cred(X,Y).
+num_cred([], 0).
+num_cred([H|T], Sum) :- num_cred(T, Rest), Sum is H + Rest.
 courses(X,Y).
 pass2(X).
 fail2(X).
