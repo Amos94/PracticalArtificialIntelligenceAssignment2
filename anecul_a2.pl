@@ -116,10 +116,21 @@ fail2(X).                   bob
 
 /* Implementation of Level 2 */
 num_cred([], 0).
-num_cred([H|T], Sum) :- num_cred(T, Rest), Sum is H + Rest.
+num_cred([H|T], Sum) :- num_cred(T, Rest), course(H, P, C), Sum is C + Rest.
 courses(X,Y).
 pass2(X).
 fail2(X).
+
+/*construction of a list*/
+append([], Y, Y).
+append([H|X], Y, [H|Z]) :- student(N, F), attend(N, C), course(N, A, Y), append(X, Y, Z).
+
+/*Sum of a list*/
+sum([], 0).
+sum([H|T], Result) :-
+    sum(T, TResult),
+Result is TResult + H.
+
 
 /*Level 2 tests*/
 
@@ -170,6 +181,13 @@ pass3(X).
 fail3(X).
 
 /*Level 3 tests*/
+
+
+
+pass3(X) :- student(X,K), has_credits(X,E), E @>= 30.
+
+
+
 
 course(pai,inf,10).
 course(tai,inf,5).
