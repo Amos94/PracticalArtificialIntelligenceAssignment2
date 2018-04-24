@@ -43,9 +43,9 @@ If the query contains a specific variable (e.g. the name alice for pass1(alice))
 /* Implementation of Level 1 */
 
 pass1(X):- student(X,K), has_credits(X,E), E @>= 30.
-fail1(X):- \+pass1(X).
+fail1(X):- student(X,K), has_credits(X,E), E < 30.
+fail1(X):- \+student(X,K).
 
-%has_credits(X,E):-student(X,K).
 
 /*
 Amos' tests
