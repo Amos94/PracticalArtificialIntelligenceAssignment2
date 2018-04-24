@@ -10,13 +10,13 @@ Y88b. .d88P  d88P       888    888
 */
 
 /* Add fact that someone is a student in a certain track */
-%student(S,T).
+%% student(S,T).
 
 /* Add fact that a course belongs to a faculty, and has certain number of ECTS. */
-%course(C,F,E).
+%% course(C,F,E).
 
 /*Add fact that a student has attended a course. */
-%attend(S,C).
+%% attend(S,C).
 
 /*
 Level 1 (15)
@@ -42,17 +42,16 @@ If the query contains a specific variable (e.g. the name alice for pass1(alice))
 
 /* Implementation of Level 1 */
 
-pass1(X):- student(X,K), has_credits(X,E), E @>= 30.
-fail1(X):- student(X,K), has_credits(X,E), E < 30.
-fail1(X):- \+student(X,K).
-
+pass1(X):- student(X, _), has_credits(X, E), E @>= 30.
+fail1(X):- student(X, _), has_credits(X, E), E @< 30.
+fail1(X):- \+student(X, _).
 
 /*
 Amos' tests
 student(amos,ss).
 student(sam,ss).
 student(bob,ss).
-student(rob,ss)
+student(rob,ss),
 has_credits(amos,30).
 has_credits(sam,10).
 has_credits(alice,200).
@@ -86,38 +85,48 @@ fail2(X).                   bob
 */
 
 /* Implementation of Level 2 */
-num_cred([], 0).
-num_cred([H|T], Sum) :- num_cred(T, Rest), course(H, P, C), Sum is C + Rest.
-courses(X,Y).
-pass2(X).
-fail2(X).
+num_cred(L, S) :-
+    num_cred(L, 0, S).
 
-% /*construction of a list*/
-% append([], Y, Y).
-% append([H|X], Y, [H|Z]) :- append(X, Y, Z).
-%
-% create_list([], Result):-
-%
-% /*Sum of a list*/
-% sum([], 0).
-% sum([H|T], Result) :-
-%     sum(T, TResult),
-% Result is TResult + H.
+num_cred([], S, S).
+num_cred([H|T], S1, S) :-
+    course(H, _, C),
+    S2 is S1 + C,
+    num_cred(T, S2, S).
+
+courses(S, Cs) :-
+    findall(C, attend(S, C), Cs).
+
+total_ects(S, Ects) :-
+  courses(S, Cs),
+  num_cred(Cs, Ects).
+
+pass2(S) :-
+    student(S, _),
+    total_ects(S, Ects),
+    Ects @>= 30.
+
+fail2(S) :-
+    student(S, _),
+    total_ects(S, Ects),
+    Ects @< 30.
+
+
 
 
 /*Level 2 tests*/
 
-course(pai,inf,10).
-course(qf,eco,10).
-course(d,law,10).
-
-student(alice,ss).
-student(bob,ss).
-
-attend(alice,pai).
-attend(alice,qf).
-attend(alice,d).
-attend(bob,pai).
+% course(pai,inf,10).
+% course(qf,eco,10).
+% course(d,law,10).
+%
+% student(alice,ss).
+% student(bob,ss).
+%
+% attend(alice,pai).
+% attend(alice,qf).
+% attend(alice,d).
+% attend(bob,pai).
 
 
 /*
@@ -140,39 +149,79 @@ fail3(X).       bob
 
 /* Implementation of Level 3 */
 
-pass3(X).
-fail3(X).
+pass3(S) :-
+    student(S, T),
+    total_ects(S, Ects),
+    Ects @>= 30,
+    track_sufficient(T, S).
+
+fail3(S) :-
+    student(S, _),
+    \+ pass3(S).
+
+
+courses(S, Cs) :-
+    findall(C, attend(S, C), Cs).
+
+total_ects(S, Ects) :-
+  courses(S, Cs),
+  num_cred(Cs, Ects).
+
+
+track_sufficient(ss, S) :-
+  ects_faculty(S, inf, 20),
+  ects_faculty(S, eco, 10).
+track_sufficient(is, S) :-
+  ects_faculty(S, inf, 20),
+  ((ects_faculty(S, eco, 5),
+    ects_faculty(S, law, 5));
+   (ects_faculty(S, eco, 10))).
+
+num_cred(L, S) :-
+    num_cred(L, 0, S).
+
+num_cred([], S, S).
+num_cred([H|T], S1, S) :-
+    course(H, _, C),
+    S2 is S1 + C,
+    num_cred(T, S2, S).
+
+ects_faculty(S, F, Minimum) :-
+    findall(C, (attend(S, C), course(C, F, _)), Cs),
+    num_cred(Cs, TotalF),
+    TotalF @>= Minimum.
+
 
 /*Level 3 tests*/
-
-
-
-pass3(X) :- student(X,K), has_credits(X,E), E @>= 30.
-
-
-
-
-course(pai,inf,10).
-course(tai,inf,5).
-course(cs,inf,5).
-course(qf,eco,10).
-course(be,eco,5).
-course(d,law,10).
-
-student(alice,ss).
-student(bob,ss).
-student(carlos,ss).
-
-attend(alice,pai).
-attend(alice,tai).
-attend(alice,cs).
-attend(alice,qf).
-attend(bob,pai).
-attend(bob,qf).
-attend(bob,d).
-attend(carlos,pai).
-attend(carlos,tai).
-attend(carlos,be).
+% course(pai, inf,10).
+% course(tai, inf,5).
+% course(ds, inf, 5).
+% course(cs, inf,5).
+% course(bda, inf, 5).
+%
+% course(bf, eco, 5).
+% course(be, eco, 5).
+% course(qf, eco,10).
+%
+% course(d, law, 10).
+% course(fl, law, 5).
+% course(ppl, law, 2.5).
+% course(ei, law, 2.5).
+%
+% student(alice, ss).
+% student(bob,ss).
+% student(carlos,ss).
+%
+% attend(alice,pai).
+% attend(alice,tai).
+% attend(alice,cs).
+% attend(alice,qf).
+% attend(bob,pai).
+% attend(bob,qf).
+% attend(bob,d).
+% attend(carlos,pai).
+% attend(carlos,tai).
+% attend(carlos,be).
 
 
 /*Level 4 (10)
